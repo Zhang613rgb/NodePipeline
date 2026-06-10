@@ -39,7 +39,7 @@ DEFAULT_SOURCE = os.path.join(PROJECT_DIR, "nodes", "neokongbox.txt")
 CLASH_API_PORT = 9090
 CLASH_API_HOST = "127.0.0.1"
 TIMEOUT = 10          # 测延迟超时（秒），免费节点普遍慢，10s 更合理
-MAX_CONCURRENT = 5    # 并发数
+MAX_CONCURRENT = 15   # 并发数（GitHub Action 2核，15适中）
 LIMIT = 500           # 最多保留节点数
 
 # BAN 列表（名称包含这些关键词的节点跳过）
