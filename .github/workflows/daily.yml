@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
+    inputs:
+      test_latency:
+        description: '启动 mihomo 测延迟（会增加 5-10 分钟运行时间）'
+        type: boolean
+        default: false
 
 jobs:
   pipeline:
@@ -28,9 +33,22 @@ jobs:
         run: python node_downloader.py
         timeout-minutes: 15
 
-      - name: 阶段2 — 输出 box.txt（全部节点）
-        run: python bridge.py --skip-test
-        timeout-minutes: 5
+      - name: 阶段2 — 输出 box.txt
+        run: |
+          if [ "${{ github.event.inputs.test_latency }}" == "true" ] || [ "${{ github.event_name }}" == "schedule" && false ]; then
+            # 测速模式：下载 mihomo + 测延迟
+            echo "下载 mihomo 内核..."
+            LATEST=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" \
+              | python -c "import sys,json;d=json.load(sys.stdin); print(next(a['browser_download_url'] for a in d['assets'] if 'linux-amd64-compatible' in a['name'] and a['name'].endswith('.gz')))")
+            curl -sSL -o clash.gz "$LATEST"
+            gunzip -c clash.gz > clash
+            chmod +x clash
+            python bridge.py --no-download
+          else
+            # 快速模式：跳过测速
+            python bridge.py --skip-test
+          fi
+        timeout-minutes: 10
 
       - name: 提交 box.txt 到仓库
         run: |
