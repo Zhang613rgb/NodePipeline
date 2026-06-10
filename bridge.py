@@ -43,7 +43,7 @@ KERNEL = "sing-box"   # "sing-box": NekoBox风格(每代理独立实例)
 TEST_URL = "https://www.gstatic.com/generate_204"
 TIMEOUT = 5           # 超时 5s（NekoBox 默认 5000ms）
 MAX_CONCURRENT = 5    # 并发 5（NekoBox 默认）
-LATENCY_TEST = True   # 是否测延迟
+LATENCY_TEST = False   # 是否测延迟
 LIMIT = 500
 
 # Serv00 上传配置
