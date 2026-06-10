@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: '0 0 * * *'
   workflow_dispatch:
-    inputs:
-      test_latency:
-        description: '勾选 = 跳过测速（快速模式），不勾选 = 下载 mihomo 测延迟'
-        type: boolean
-        default: false
 
 jobs:
   pipeline:
@@ -21,7 +16,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -29,26 +23,13 @@ jobs:
       - name: 安装依赖
         run: pip install -r requirements.txt
 
-      - name: 阶段1 — 爬取+合并节点
+      - name: 爬取+合并
         run: python node_downloader.py
         timeout-minutes: 15
 
-      - name: 阶段2 — 输出 box.txt
-        run: |
-          if [ "${{ github.event.inputs.test_latency }}" != "false" ]; then
-            # 测速模式：下载 mihomo + 测延迟
-            echo "下载 mihomo 内核..."
-            LATEST=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" \
-              | python -c "import sys,json;d=json.load(sys.stdin); print(next(a['browser_download_url'] for a in d['assets'] if 'linux-amd64-compatible' in a['name'] and a['name'].endswith('.gz')))")
-            curl -sSL -o clash.gz "$LATEST"
-            gunzip -c clash.gz > clash
-            chmod +x clash
-            python bridge.py --no-download
-          else
-            # 快速模式：跳过测速
-            python bridge.py --skip-test
-          fi
-        timeout-minutes: 10
+      - name: 测速+输出 box.txt
+        run: python bridge.py
+        timeout-minutes: 12
 
       - name: 提交 box.txt 到仓库
         run: |
