@@ -40,6 +40,7 @@ CLASH_API_PORT = 9090
 CLASH_API_HOST = "127.0.0.1"
 TIMEOUT = 10          # 测延迟超时（秒），免费节点普遍慢，10s 更合理
 MAX_CONCURRENT = 15   # 并发数（GitHub Action 2核，15适中）
+LATENCY_TEST = True    # 是否测延迟。False = 跳过测速，直接输出全部节点
 LIMIT = 500           # 最多保留节点数
 
 # BAN 列表（名称包含这些关键词的节点跳过）
@@ -837,8 +838,8 @@ def main():
         print("[!] 没有可用的代理节点")
         sys.exit(1)
 
-    # ── 跳过测速模式 ──
-    if args.skip_test:
+    # ── 跳过测速模式（通过参数或 LATENCY_TEST 配置控制）──
+    if args.skip_test or not LATENCY_TEST:
         print("\n=== 跳过测速，直接输出全部节点 ===")
         save_all_output(proxies)
         return
