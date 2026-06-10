@@ -65,15 +65,15 @@ def get_singbox_binary():
 
     if sys_plat == "windows":
         binary_name = "sing-box.exe"
-        zip_pattern = f"sing-box-{sys_plat}-{arch}"
+        zip_pattern = f"{sys_plat}-{arch}"
         ext = ".zip"
     elif sys_plat == "linux":
         binary_name = "sing-box"
-        zip_pattern = f"sing-box-{sys_plat}-{arch}"
+        zip_pattern = f"{sys_plat}-{arch}"
         ext = ".tar.gz"
     elif sys_plat == "darwin":
         binary_name = "sing-box"
-        zip_pattern = f"sing-box-{sys_plat}-{arch}"
+        zip_pattern = f"{sys_plat}-{arch}"
         ext = ".tar.gz"
     else:
         raise OSError(f"不支持的操作系统: {sys_plat}")
@@ -96,12 +96,14 @@ def get_singbox_binary():
         dl_url = None
         for asset in data.get("assets", []):
             name = asset.get("name", "")
-            if zip_pattern in name and name.endswith(ext):
+            if zip_pattern in name and name.endswith(ext) and "glibc" not in name and "musl" not in name:
+                dl_url = asset["browser_download_url"]
+                break
                 dl_url = asset["browser_download_url"]
                 break
 
         if not dl_url:
-            print(f"[!] 未找到匹配: {zip_pattern}*{ext}")
+            print(f"[!] 未找到包含 {zip_pattern} 的 {ext} 文件")
             return ""
 
         print(f"[*] 下载: {dl_url}")
