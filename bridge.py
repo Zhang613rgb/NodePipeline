@@ -61,23 +61,40 @@ CLASH_API_HOST = "127.0.0.1"
 # ══════════════════════════════════════════════════════
 
 def download_with_mirror(url, timeout=120):
-    """下载文件，直连失败自动用镜像重试"""
-    PROXIES = [
+    """测速选最快镜像下载，直连/ghfast.top/gh-proxy.com 三选一"""
+    import requests, time
+    mirrors = [
         ("直连", url),
         ("ghfast.top", f"https://ghfast.top/{url.removeprefix('https://')}"),
         ("gh-proxy.com", f"https://gh-proxy.com/{url.removeprefix('https://')}"),
     ]
-    import requests
-    for name, proxy_url in PROXIES:
+
+    # 先测速：发 HEAD 请求，选响应最快的
+    fastest_name, fastest_url = None, None
+    fastest_ms = float("inf")
+    for name, mirror_url in mirrors:
         try:
-            print(f"  [{name}] 下载中...")
-            resp = requests.get(proxy_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=timeout)
-            resp.raise_for_status()
-            return resp
+            start = time.time()
+            resp = requests.head(mirror_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
+            ms = (time.time() - start) * 1000
+            if resp.status_code < 500:
+                print(f"  [{name}] {ms:.0f}ms")
+                if ms < fastest_ms:
+                    fastest_ms = ms
+                    fastest_name = name
+                    fastest_url = mirror_url
+            else:
+                print(f"  [{name}] HTTP {resp.status_code}")
         except Exception as e:
-            print(f"  [{name}] 失败: {type(e).__name__}")
-            continue
-    raise Exception("所有下载源均失败")
+            print(f"  [{name}] {type(e).__name__}")
+
+    if not fastest_url:
+        raise Exception("所有下载源均不可用")
+
+    print(f"  → 选 {fastest_name} ({fastest_ms:.0f}ms)")
+    resp = requests.get(fastest_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=timeout)
+    resp.raise_for_status()
+    return resp
 
 
 def get_singbox_binary():
