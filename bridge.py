@@ -40,7 +40,7 @@ KERNEL = "sing-box"   # "sing-box": NekoBox风格(每代理独立实例)
                        # "mihomo":  单实例批量测速
 
 # 测速参数（两种内核共用）
-TEST_URL = "http://cp.cloudflare.com/"
+TEST_URL = "https://www.gstatic.com/generate_204"
 TIMEOUT = 5           # 超时 5s（NekoBox 默认 5000ms）
 MAX_CONCURRENT = 5    # 并发 5（NekoBox 默认）
 LATENCY_TEST = True   # 是否测延迟
