@@ -384,10 +384,18 @@ def generate_config(urls: list[str]) -> list[dict]:
         seen_names.add(proxy["name"])
         proxies.append(proxy)
 
-    # 全局去重（server:port:type:password 组合）
+    # 全局去重（server:port:type + 路由参数，避免不同 SNI/path 的节点被误删）
     unique = {}
     for p in proxies:
-        key = (p["server"], p["port"], p["type"], p.get("password", ""))
+        # 构建区分 key：server+port+type+password+network+sni+path+host
+        key = (
+            p["server"], p["port"], p["type"],
+            p.get("password", ""),
+            p.get("network", "tcp"),
+            p.get("sni", ""),
+            (p.get("ws-opts") or {}).get("path", "") or p.get("ws-path", ""),
+            (p.get("ws-opts") or {}).get("headers", {}).get("Host", "") or p.get("ws-headers", {}).get("Host", ""),
+        )
         if key not in unique:
             unique[key] = p
     dup_count = len(proxies) - len(unique)
@@ -709,9 +717,11 @@ def save_sorted_output(sorted_proxies: list[tuple[str, int]], name_to_proxy: dic
                 urls.append((url, delay))
                 total_delay += delay
 
-    # 拼接明文，然后整体 Base64 编码（标准 v2ray 订阅格式）
+    # 拼接明文，然后整体 Base64 编码（标准 v2ray 订阅格式，每 76 字符换行）
     plaintext = "\n".join(url for url, _ in urls)
-    encoded = base64.b64encode(plaintext.encode("utf-8")).decode("ascii")
+    raw = base64.b64encode(plaintext.encode("utf-8")).decode("ascii")
+    # 每 76 字符换行
+    encoded = "\n".join(raw[i:i+76] for i in range(0, len(raw), 76))
 
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(encoded + "\n")
