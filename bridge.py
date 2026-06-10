@@ -423,11 +423,11 @@ def get_mihomo_binary() -> str:
         target_name = "mihomo-windows-amd64-compatible"
         ext = ".zip"
     elif sys_plat == "linux":
-        binary_name = "clash-linux"
+        binary_name = "clash"
         target_name = "mihomo-linux-amd64-compatible"
         ext = ".gz"
     elif sys_plat == "darwin":
-        binary_name = "clash-darwin"
+        binary_name = "clash"
         target_name = "mihomo-darwin-amd64-compatible"
         ext = ".gz"
     else:

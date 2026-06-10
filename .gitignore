@@ -2,8 +2,9 @@
 nodes/
 input/
 clash_config.yaml.json
+clash
 clash.exe
-clash.gz
-mihomo.zip
+*.gz
+*.zip
 __pycache__/
 *.pyc
