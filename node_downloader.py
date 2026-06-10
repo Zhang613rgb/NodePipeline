@@ -17,47 +17,37 @@
      - 节点链接以 <a> 标签形式存在
      - URL 模式: https://clashgithub.com/wp-content/uploads/rss/{date}
 
-  3. OneClash (oneclash.cc)
-     - 文章格式: https://oneclash.cc/a/{ID}.html
-     - 节点链接格式: https://oss.oneclash.cc/{YYYY}/{MM}/{date}.txt
-     - 日期在链接文本中，如 "6月9日"
+  3. ClashNode (clashnode.cc)
+     - 文章格式: https://clashnode.cc/free-node/{date}-free-node-subscribe-links.htm
+     - 节点链接格式: https://node.clashnode.cc/uploads/{YYYY}/{MM}/{N}-{YYYYMMDD}.{txt|yaml|json}
+     - 日期格式: 6月9日 或 2026-6-9
+     - 支持 v2ray/clash/sing-box 三种格式
 
-  4. V2RayShare (v2rayshare.net)
-     - 文章格式: https://v2rayshare.net/p/{ID}.html
-     - 节点链接格式: https://static.v2rayshare.net/{YYYY}/{MM}/{date}.txt
-     - 日期在链接文本中，如 "6月9日"
-
-  5. 玩转喵 (wanzhuanmi.com)
-     - 文章格式: https://wanzhuanmi.com/archives/{ID}
-     - 节点链接格式: http://wanzhuanmi.cczzuu.top/node/{date}.txt
-     - 日期在链接文本中，如 "2026年06月09日"
-
-  6. CFMem (cfmem.com)
+  4. CFMem (cfmem.com)
      - 首页有 Cloudflare 保护，不解析首页
      - 直接使用已知文章 URL 模式
      - 节点链接: https://nodebuf.com/files/public/{hash}/preview
 
-  7. YoYaPaI (yoyapai.com)
+  5. YoYaPaI (yoyapai.com)
      - 文章格式: https://yoyapai.com/{ID}
      - 节点链接格式: https://freenode.yoyapai.com/{path}/{date}.{ext}
      - 从 category 页面 /category/mianfeijiedian 提取文章
 
-  8. StairNode (stairnode.com)
+  6. StairNode (stairnode.com)
      - 文章格式: https://www.stairnode.com/archives/{ID}.html
      - 节点链接格式: http://stairnode.cczzuu.top/node/{YYYYMMDD}.{txt|yaml}
      - 日期格式: 2026年06月09日
      - 注意: 首页需要 -k 跳过 SSL 证书验证
 
-   9. ClashNode (clashnode.cc)
+  7. ClashNode (clashnode.cc)
       - 文章格式: https://clashnode.cc/free-node/{date}-free-node-subscribe-links.htm
       - 节点链接格式: https://node.clashnode.cc/uploads/{YYYY}/{MM}/{N}-{YYYYMMDD}.{txt|yaml|json}
       - 日期格式: 6月9日 或 2026-6-9
       - 支持 v2ray/clash/sing-box 三种格式
 
-   10. 直连订阅源 (3 个)
+   8. 直连订阅源 (2 个)
       - freev2.net: https://xmxosfepggzm.503403.xyz/ (NekoBox UA, vless://)
       - ssrsub: https://gh-proxy.com/raw/.../ssrsub/ssr/master/v2ray (vless/vmess/ss/trojan)
-      - daozhangnb: https://ss.daozhangnb.dpdns.org/ (15 条 ss://)
 
 用法：
   # 下载模式
@@ -113,39 +103,6 @@ SITES = {
         "file_ext_map": {".txt": "txt"},
         "desc_map": {".txt": "v2ray 订阅链接"},
         "extract_links": "p_tag",
-    },
-    "oneclash": {
-        "name": "OneClash",
-        "home_url": "https://oneclash.cc/",
-        "category_url": None,
-        "article_pattern": re.compile(r'(https?://oneclash\.cc/a/\d+\.html)'),
-        "date_pattern": re.compile(r'(\d{1,2})月(\d{1,2})日'),
-        "link_url_pattern": re.compile(r'https?://oss\.oneclash\.cc/\d{4}/\d{2}/\d{8}\.txt', re.IGNORECASE),
-        "file_ext_map": {".txt": "txt"},
-        "desc_map": {".txt": "v2ray 订阅链接"},
-        "extract_links": "p_tag",
-    },
-    "v2rayshare": {
-        "name": "V2RayShare",
-        "home_url": "https://v2rayshare.net/",
-        "category_url": None,
-        "article_pattern": re.compile(r'(https?://v2rayshare\.net/p/\d+\.html)'),
-        "date_pattern": re.compile(r'(\d{1,2})月(\d{1,2})日'),
-        "link_url_pattern": re.compile(r'https?://static\.v2rayshare\.net/\d{4}/\d{2}/\d{8}\.txt', re.IGNORECASE),
-        "file_ext_map": {".txt": "txt"},
-        "desc_map": {".txt": "V2RayShare 节点订阅"},
-        "extract_links": "p_tag",
-    },
-    "wanzhuanmi": {
-        "name": "玩转喵",
-        "home_url": "https://wanzhuanmi.com/",
-        "category_url": None,
-        "article_pattern": re.compile(r'(https?://wanzhuanmi\.com/freenode/[\d-]+)'),
-        "date_pattern": re.compile(r'(\d{4})年(\d{2})月(\d{2})日'),
-        "link_url_pattern": re.compile(r'https?://wanzhuanmi\.cczzuu\.top/node/\d{8}\.txt', re.IGNORECASE),
-        "file_ext_map": {".txt": "txt"},
-        "desc_map": {".txt": "玩转喵 节点订阅"},
-        "extract_links": "both",
     },
     "yoyapai": {
         "name": "YoYaPaI",
@@ -205,11 +162,6 @@ DIRECT_SUBSCRIPTION_URLS = [
         "name": "ssrsub",
         "url": "https://gh-proxy.com/raw.githubusercontent.com/ssrsub/ssr/master/v2ray",
         "desc": "ssrsub GitHub mirror (via gh-proxy)",
-    },
-    {
-        "name": "daozhangnb",
-        "url": "https://ss.daozhangnb.dpdns.org/",
-        "desc": "daozhangnb 订阅",
     },
 ]
 
@@ -952,20 +904,18 @@ def process_all_sites(download: bool, outdir: str, verify_ssl: bool = True) -> d
 
 def main():
     parser = argparse.ArgumentParser(
-        description="节点订阅链接自动下载器 + NeoKongBox 合并工具（只保留 .txt v2ray 订阅，支持 9 个站点 + CFMem + GitHub Raw + 直连订阅源）",
+        description="节点订阅链接自动下载器 + NeoKongBox 合并工具",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 站点列表：
   mibei77      - 米贝77 (mibei77.com)
   clash        - ClashGitHub (clashgithub.com)
-  oneclash     - OneClash (oneclash.cc)
-  v2rayshare   - V2RayShare (v2rayshare.net)
-  wanzhuanmi   - 玩转喵 (wanzhuanmi.com)
   yoyapai      - YoYaPaI (yoyapai.com)
   stairnode    - StairNode (stairnode.com)
   clashnode    - ClashNode (clashnode.cc)
   cfmem        - CFMem (cfmem.com)
-  all          - 所有站点（含直连订阅源 freev2.net / ssrsub / daozhangnb）
+
+示例：  all          - 所有站点（含直连订阅源 freev2.net / ssrsub）
 
  模式：
   --download   下载文件内容到本地
@@ -981,7 +931,7 @@ def main():
         """,
     )
     parser.add_argument("--site",
-                        choices=["mibei77", "clash", "oneclash", "v2rayshare", "wanzhuanmi", "yoyapai", "stairnode", "clashnode", "cfmem"],
+                        choices=["mibei77", "clash", "yoyapai", "stairnode", "clashnode", "cfmem"],
                         help="目标站点（不指定时用 --all 处理所有）")
     parser.add_argument("--all", action="store_true", help="处理所有支持站点")
     parser.add_argument("--download", action="store_true", help="下载文件内容到本地")
