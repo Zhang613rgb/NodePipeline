@@ -35,7 +35,7 @@ jobs:
 
       - name: 阶段2 — 输出 box.txt
         run: |
-          if [ "${{ github.event.inputs.test_latency }}" == "true" ] || [ "${{ github.event_name }}" == "schedule" && false ]; then
+          if [ "${{ github.event.inputs.test_latency }}" == "true" ]; then
             # 测速模式：下载 mihomo + 测延迟
             echo "下载 mihomo 内核..."
             LATEST=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" \
