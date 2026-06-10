@@ -60,6 +60,26 @@ CLASH_API_HOST = "127.0.0.1"
 # sing-box 内核下载（NekoBox 使用的内核，SagerNet/sing-box）
 # ══════════════════════════════════════════════════════
 
+def download_with_mirror(url, timeout=120):
+    """下载文件，直连失败自动用镜像重试"""
+    PROXIES = [
+        ("直连", url),
+        ("ghfast.top", f"https://ghfast.top/{url.removeprefix('https://')}"),
+        ("gh-proxy.com", f"https://gh-proxy.com/{url.removeprefix('https://')}"),
+    ]
+    import requests
+    for name, proxy_url in PROXIES:
+        try:
+            print(f"  [{name}] 下载中...")
+            resp = requests.get(proxy_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=timeout)
+            resp.raise_for_status()
+            return resp
+        except Exception as e:
+            print(f"  [{name}] 失败: {type(e).__name__}")
+            continue
+    raise Exception("所有下载源均失败")
+
+
 def get_singbox_binary():
     """下载/定位 sing-box 二进制（NekoBox 使用的内核）"""
     sys_plat = platform.system().lower()
@@ -110,8 +130,11 @@ def get_singbox_binary():
             return ""
 
         print(f"[*] 下载: {dl_url}")
-        resp = requests.get(dl_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=120)
-        resp.raise_for_status()
+        try:
+            resp = download_with_mirror(dl_url)
+        except Exception as e:
+            print(f"[!] 下载失败: {e}")
+            return ""
 
         tmp_file = os.path.join(PROJECT_DIR, f"sg_dl{ext}")
         with open(tmp_file, "wb") as f:
@@ -636,7 +659,7 @@ def get_mihomo_binary():
             break
     if not dl_url:
         return ""
-    resp = requests.get(dl_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=120)
+    resp = download_with_mirror(dl_url)
     resp.raise_for_status()
     tmp = os.path.join(PROJECT_DIR, f"dl{ext}")
     with open(tmp, "wb") as f: f.write(resp.content)
