@@ -9,6 +9,8 @@ jobs:
   pipeline:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      PYTHONUNBUFFERED: 1
 
     steps:
       - uses: actions/checkout@v4
@@ -26,10 +28,13 @@ jobs:
 
       - name: 下载 mihomo 内核
         run: |
+          set -e
+          echo ":: 获取最新版本..."
           LATEST=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" \
-            | python -c "import sys,json;d=json.load(sys.stdin); print(next(a['browser_download_url'] for a in d['assets'] if 'linux-amd64-compatible' in a['name'] and a['name'].endswith('.gz')))" 2>/dev/null)
+            | python -c "import sys,json;d=json.load(sys.stdin); print(next(a['browser_download_url'] for a in d['assets'] if 'linux-amd64-compatible' in a['name'] and a['name'].endswith('.gz')))")
           echo "下载: $LATEST"
-          curl -sL -o clash.gz "$LATEST"
+          curl -sSL -o clash.gz "$LATEST"
+          ls -lh clash.gz
           gunzip -c clash.gz > clash
           chmod +x clash
           ./clash -v
