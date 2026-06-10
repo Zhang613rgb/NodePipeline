@@ -1,0 +1,9 @@
+# 运行时生成
+nodes/
+input/
+clash_config.yaml.json
+clash.exe
+clash.gz
+mihomo.zip
+__pycache__/
+*.pyc
