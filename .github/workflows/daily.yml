@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
     inputs:
       test_latency:
-        description: '启动 mihomo 测延迟（会增加 5-10 分钟运行时间）'
+        description: '勾选 = 跳过测速（快速模式），不勾选 = 下载 mihomo 测延迟'
         type: boolean
         default: false
 
@@ -35,7 +35,7 @@ jobs:
 
       - name: 阶段2 — 输出 box.txt
         run: |
-          if [ "${{ github.event.inputs.test_latency }}" == "true" ]; then
+          if [ "${{ github.event.inputs.test_latency }}" != "false" ]; then
             # 测速模式：下载 mihomo + 测延迟
             echo "下载 mihomo 内核..."
             LATEST=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" \
