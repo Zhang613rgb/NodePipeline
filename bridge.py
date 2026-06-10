@@ -201,6 +201,10 @@ def _parse_vless(url: str) -> dict:
         "tls": query.get("security", ["none"])[0] == "tls",
         "udp": True,
     }
+    # 保留 encryption 参数（默认 none，但输出时需要保留）
+    enc = query.get("encryption", ["none"])[0]
+    if enc:
+        proxy["encryption"] = enc
     if query.get("security", ["none"])[0] != "none":
         proxy["security"] = query["security"][0]
     if query.get("sni", [""])[0]:
@@ -258,7 +262,11 @@ def _parse_ss(url: str) -> dict:
         try:
             decoded = base64.urlsafe_b64decode(padded).decode("utf-8")
         except Exception:
-            return None
+            # 可能不是 Base64 而是明文格式: ss://method:password@server:port
+            if ":" in raw_b64:
+                decoded = raw_b64
+            else:
+                return None
         cipher, password = decoded.split(":", 1) if ":" in decoded else (decoded, "")
     else:
         # 非标准格式: ss://base64(method:password@server:port)#name
@@ -607,6 +615,8 @@ def proxy_to_url(proxy: dict) -> str | None:
 def _proxy_to_vless(p: dict) -> str:
     name = urllib.parse.quote(p.get("name", ""), safe="")
     params = {}
+    if p.get("encryption") and p["encryption"] != "none":
+        params["encryption"] = p["encryption"]
     if p.get("security") and p["security"] != "none":
         params["security"] = p["security"]
     if p.get("sni"):
