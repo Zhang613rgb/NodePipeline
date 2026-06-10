@@ -2,10 +2,15 @@
 nodes/
 input/
 clash_config.yaml.json
+clash_test.json
 clash
 clash.exe
+sing-box
+sing-box.exe
 *.gz
 *.zip
+sing-box_*/
+nekobox_temp/
 __pycache__/
 *.pyc
 # 本地配置（含 Serv00 token）
