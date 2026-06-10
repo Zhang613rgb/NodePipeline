@@ -96,7 +96,7 @@ def get_singbox_binary():
         dl_url = None
         for asset in data.get("assets", []):
             name = asset.get("name", "")
-            if zip_pattern in name and name.endswith(ext) and "glibc" not in name and "musl" not in name:
+            if zip_pattern in name and name.endswith(ext) and "glibc" not in name and "musl" not in name and "legacy" not in name:
                 dl_url = asset["browser_download_url"]
                 break
                 dl_url = asset["browser_download_url"]
@@ -389,7 +389,7 @@ def build_singbox_config(proxy, api_port):
 
     config = {
         "log": {"disabled": True},
-        "dns": {"final": "local"},
+        "dns": {},
         "inbounds": [],
         "outbounds": [
             {"type": "direct", "tag": "direct"},
@@ -440,10 +440,16 @@ def test_single_proxy(proxy, binary, work_dir):
 
     proc = None
     try:
+        # 清除系统代理，防止 sing-box 出站连接被劫持
+        clean_env = os.environ.copy()
+        for k in ["HTTP_PROXY", "HTTPS_PROXY", "http_proxy", "https_proxy", "ALL_PROXY", "all_proxy"]:
+            clean_env.pop(k, None)
+
         proc = subprocess.Popen(
-            [binary, "-f", config_file, "-d", work_dir],
+            [binary, "run", "-c", config_file],
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
+            env=clean_env,
         )
 
         # 等待 API 就绪（最长 3s）
