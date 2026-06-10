@@ -61,7 +61,7 @@ CLASH_API_HOST = "127.0.0.1"
 # ══════════════════════════════════════════════════════
 
 def download_with_mirror(url, timeout=120):
-    """测速选最快镜像下载，直连/ghfast.top/gh-proxy.com 三选一"""
+    """先测速选最快镜像，下载失败自动切下一个"""
     import requests, time
     mirrors = [
         ("直连", url),
@@ -69,32 +69,44 @@ def download_with_mirror(url, timeout=120):
         ("gh-proxy.com", f"https://gh-proxy.com/{url.removeprefix('https://')}"),
     ]
 
-    # 先测速：发 HEAD 请求，选响应最快的
-    fastest_name, fastest_url = None, None
-    fastest_ms = float("inf")
+    # 先测速：HEAD 请求，按响应时间排序
+    results = []
     for name, mirror_url in mirrors:
         try:
             start = time.time()
             resp = requests.head(mirror_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=10)
             ms = (time.time() - start) * 1000
             if resp.status_code < 500:
+                results.append((ms, name, mirror_url))
                 print(f"  [{name}] {ms:.0f}ms")
-                if ms < fastest_ms:
-                    fastest_ms = ms
-                    fastest_name = name
-                    fastest_url = mirror_url
             else:
                 print(f"  [{name}] HTTP {resp.status_code}")
         except Exception as e:
             print(f"  [{name}] {type(e).__name__}")
 
-    if not fastest_url:
+    # 按延迟排序（快的优先）
+    results.sort(key=lambda x: x[0])
+
+    if not results:
         raise Exception("所有下载源均不可用")
 
-    print(f"  → 选 {fastest_name} ({fastest_ms:.0f}ms)")
-    resp = requests.get(fastest_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=timeout)
-    resp.raise_for_status()
-    return resp
+    print(f"  按延迟排序: {' < '.join(f'{n}({ms:.0f}ms)' for ms, n, _ in results)}")
+
+    # 按顺序逐个尝试下载
+    last_error = None
+    for ms, name, mirror_url in results:
+        try:
+            print(f"  ↓ 下载 [{name}] ...")
+            resp = requests.get(mirror_url, headers={"User-Agent": "Mozilla/5.0"}, timeout=timeout)
+            resp.raise_for_status()
+            print(f"  ✓ [{name}] 下载成功")
+            return resp
+        except Exception as e:
+            print(f"  ✗ [{name}] 下载失败: {type(e).__name__}")
+            last_error = e
+            continue
+
+    raise last_error or Exception("所有下载源均失败")
 
 
 def get_singbox_binary():
