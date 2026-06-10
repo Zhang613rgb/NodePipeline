@@ -532,20 +532,19 @@ def start_mihomo(binary: str) -> subprocess.Popen | None:
 
 
 def test_proxies(proxy_names: list[str]) -> dict[str, int]:
-    """批量测延迟，返回 name -> delay_ms 映射（包含重试）"""
+    """批量测延迟，返回 name -> delay_ms 映射"""
     import requests
     import concurrent.futures
 
     results = {}
     total = len(proxy_names)
 
-    def test_one(name: str, retry: bool = False) -> tuple[str, int | None]:
-        timeout = TIMEOUT * 2 if retry else TIMEOUT  # 重试时翻倍超时
+    def test_one(name: str) -> tuple[str, int | None]:
         try:
             r = requests.get(
                 f"http://{CLASH_API_HOST}:{CLASH_API_PORT}/proxies/{urllib.parse.quote(name, safe='')}/delay",
-                params={"url": "http://www.gstatic.com/generate_204", "timeout": timeout * 1000},
-                timeout=timeout + 1,
+                params={"url": "http://www.gstatic.com/generate_204", "timeout": TIMEOUT * 1000},
+                timeout=TIMEOUT + 1,
                 headers=HEADERS,
             )
             if r.status_code == 200:
@@ -554,8 +553,7 @@ def test_proxies(proxy_names: list[str]) -> dict[str, int]:
             pass
         return name, None
 
-    # 第一轮：正常测
-    print(f"[*] 第一轮测速: {total} 个节点 (并发 {MAX_CONCURRENT}, 超时 {TIMEOUT}s)")
+    print(f"[*] 测速: {total} 个节点 (并发 {MAX_CONCURRENT}, 超时 {TIMEOUT}s)")
     done = 0
     with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
         futures = {executor.submit(test_one, name): name for name in proxy_names}
@@ -567,23 +565,6 @@ def test_proxies(proxy_names: list[str]) -> dict[str, int]:
             if done % 20 == 0 or done == total:
                 print(f"\r  进度: {done}/{total} (可达: {len(results)})", end="", flush=True)
     print()
-
-    # 第二轮：重试失败的（双倍超时）
-    failed = [n for n in proxy_names if n not in results]
-    if failed:
-        print(f"[*] 第二轮重试: {len(failed)} 个失败节点 (超时 {TIMEOUT * 2}s)")
-        retry_done = 0
-        with concurrent.futures.ThreadPoolExecutor(max_workers=MAX_CONCURRENT) as executor:
-            futures = {executor.submit(test_one, name, True): name for name in failed}
-            for future in concurrent.futures.as_completed(futures):
-                name, delay = future.result()
-                retry_done += 1
-                if delay is not None:
-                    results[name] = delay
-                if retry_done % 20 == 0 or retry_done == len(failed):
-                    print(f"\r  重试: {retry_done}/{len(failed)} (新增可达: {len(results) - (total - len(failed))})", end="", flush=True)
-        print()
-
     return results
 
 
