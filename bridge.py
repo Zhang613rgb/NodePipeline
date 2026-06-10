@@ -774,6 +774,35 @@ def save_sorted_output(sorted_proxies: list[tuple[str, int]], name_to_proxy: dic
             bar = "█" * (v * 20 // len(urls) if urls else 0)
             print(f"  {k}: {v:4d} {bar}")
 
+def save_all_output(proxies: list[dict]):
+    """不测速，直接全部输出为 Base64 订阅文件"""
+    urls = []
+    for p in proxies:
+        url = proxy_to_url(p)
+        if url:
+            urls.append(url)
+
+    plaintext = "\n".join(urls)
+    raw = base64.b64encode(plaintext.encode("utf-8")).decode("ascii")
+    encoded = "\n".join(raw[i:i+76] for i in range(0, len(raw), 76))
+
+    with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
+        f.write(encoded + "\n")
+
+    print(f"\n{'='*60}")
+    print(f"[OK] 已输出: {OUTPUT_FILE}")
+    print(f"    节点数: {len(urls)}")
+    print(f"    文件大小: {len(raw):,} 字节")
+    print(f"{'='*60}")
+
+    types = {}
+    for u in urls:
+        p = u.split("://")[0]
+        types[p] = types.get(p, 0) + 1
+    print("\n节点类型分布:")
+    for t, c in sorted(types.items()):
+        print(f"  {t}: {c}")
+
 
 # ══════════════════════════════════════════════════════
 # 主入口
@@ -788,6 +817,7 @@ def main():
     parser = argparse.ArgumentParser(description="mihomo 测速桥接: 去失效 + 按延迟排序")
     parser.add_argument("--input", default=DEFAULT_SOURCE, help=f"输入文件（默认: {DEFAULT_SOURCE}）")
     parser.add_argument("--no-download", action="store_true", help="跳过 mihomo 下载（如果已存在）")
+    parser.add_argument("--skip-test", action="store_true", help="跳过测速，直接输出全部节点")
     parser.add_argument("--output", default=None, help="输出文件路径")
     args = parser.parse_args()
 
@@ -806,6 +836,12 @@ def main():
     if not proxies:
         print("[!] 没有可用的代理节点")
         sys.exit(1)
+
+    # ── 跳过测速模式 ──
+    if args.skip_test:
+        print("\n=== 跳过测速，直接输出全部节点 ===")
+        save_all_output(proxies)
+        return
 
     # ── 阶段 3: 准备 mihomo ──
     print("\n=== 阶段 3: 准备 mihomo 内核 ===")

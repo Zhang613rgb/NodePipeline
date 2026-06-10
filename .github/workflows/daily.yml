@@ -28,22 +28,9 @@ jobs:
         run: python node_downloader.py
         timeout-minutes: 15
 
-      - name: 下载 mihomo 内核
-        run: |
-          set -e
-          echo ":: 获取最新版本..."
-          LATEST=$(curl -sL "https://api.github.com/repos/MetaCubeX/mihomo/releases/latest" \
-            | python -c "import sys,json;d=json.load(sys.stdin); print(next(a['browser_download_url'] for a in d['assets'] if 'linux-amd64-compatible' in a['name'] and a['name'].endswith('.gz')))")
-          echo "下载: $LATEST"
-          curl -sSL -o clash.gz "$LATEST"
-          ls -lh clash.gz
-          gunzip -c clash.gz > clash
-          chmod +x clash
-          ./clash -v
-
-      - name: 阶段2 — mihomo 测速 + 排序
-        run: python bridge.py --no-download
-        timeout-minutes: 10
+      - name: 阶段2 — 输出 box.txt（全部节点）
+        run: python bridge.py --skip-test
+        timeout-minutes: 5
 
       - name: 提交 box.txt 到仓库
         run: |
