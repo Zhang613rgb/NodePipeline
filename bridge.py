@@ -46,6 +46,9 @@ MAX_CONCURRENT = 5    # 并发 5（NekoBox 默认）
 LATENCY_TEST = True   # 是否测延迟
 LIMIT = 500
 
+# Serv00 上传配置
+SERV00_UPLOAD_URL = os.environ.get("SERV00_UPLOAD_URL", "")
+
 # BAN 列表
 BAN = ["中国", "China", "CN", "电信", "移动", "联通"]
 
@@ -738,6 +741,41 @@ def test_proxies_mihomo(proxies, binary):
         except: pass
 
 
+# ── Serv00 上传 ────────────────────────────────────
+
+def upload_to_serv00(file_path: str) -> bool:
+    """上传文件到 Serv00 远程服务器（环境变量 SERV00_UPLOAD_URL）"""
+    if not SERV00_UPLOAD_URL:
+        return False
+    if not os.path.exists(file_path):
+        print(f"[!] 上传失败: 文件不存在 {file_path}")
+        return False
+
+    file_size = os.path.getsize(file_path)
+    print(f"\n{'='*60}")
+    print(f"  上传到 Serv00")
+    print(f"{'='*60}")
+    print(f"[*] 上传文件: {file_path}")
+    print(f"[*] 文件大小: {file_size:,} 字节")
+
+    try:
+        with open(file_path, 'rb') as f:
+            files = {'file': (os.path.basename(file_path), f, 'text/plain')}
+            resp = requests.post(SERV00_UPLOAD_URL, files=files, timeout=30)
+
+        if resp.status_code in (200, 201):
+            print(f"[OK] 上传成功!")
+            return True
+        else:
+            print(f"[!] 上传失败，HTTP {resp.status_code}")
+            print(f"    响应: {resp.text[:100]}")
+            return False
+
+    except requests.RequestException as e:
+        print(f"[!] 上传请求失败: {e}")
+        return False
+
+
 # ══════════════════════════════════════════════════════
 # 输出
 # ══════════════════════════════════════════════════════
@@ -789,7 +827,8 @@ def save_output(sorted_list, all_proxies):
             bar = "█" * max(1, v * 20 // len(urls))
             print(f"  {k}: {v:4d} {bar}")
 
-
+    # 上传到 Serv00
+    upload_to_serv00(OUTPUT_FILE)
 def save_all_output(proxies):
     urls = [proxy_to_url_full(p) for p in proxies if proxy_to_url_full(p)]
     plaintext = "\n".join(urls)
@@ -798,8 +837,7 @@ def save_all_output(proxies):
     with open(OUTPUT_FILE, "w", encoding="utf-8") as f:
         f.write(encoded + "\n")
     print(f"\n[OK] 已输出: {OUTPUT_FILE} ({len(urls)} 个节点)")
-
-
+    upload_to_serv00(OUTPUT_FILE)
 # ══════════════════════════════════════════════════════
 # 主入口
 # ══════════════════════════════════════════════════════
